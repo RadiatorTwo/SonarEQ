@@ -10,6 +10,7 @@ namespace SonarEQ
     {
         private static string databasePath = string.Empty;
         private const double QFACTOR = 0.7071;
+        private const string STANDARD_TYPE = "peakingEQ";
 
         static void Main(string[] args)
         {
@@ -141,87 +142,35 @@ namespace SonarEQ
 
             var jsonData = JsonConvert.DeserializeObject<SonarPreset>(jsonText) ?? throw new Exception("Error parsing Preset data");
 
-            for (int i = 1; i <= filters.Count; i++)
+            //It ALWAYS has to be 10 filter entries in the json data.
+            for (int i = 1; i <= 10; i++)
             {
                 var filter = filters[i - 1];
+
+                if (filter.IsEmpty)
+                {
+                    continue;
+                }
 
                 if (filter.QFactor < 0.5)
                     filter.QFactor = 0.5;
                 else if (filter.QFactor > 10.0)
                     filter.QFactor = 10.0;
 
-                switch (i)
+                var currentFilterProperty = jsonData.parametricEQ.GetType().GetProperty($"filter{i}");
+
+                if (currentFilterProperty != null)
                 {
-                    case 1:
-                        jsonData.parametricEQ.filter1.enabled = true;
-                        jsonData.parametricEQ.filter1.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter1.gain = filter.Gain;
-                        jsonData.parametricEQ.filter1.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter1.type = ConvertType(filter.Type);
-                        break;
-                    case 2:
-                        jsonData.parametricEQ.filter2.enabled = true;
-                        jsonData.parametricEQ.filter2.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter2.gain = filter.Gain;
-                        jsonData.parametricEQ.filter2.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter2.type = ConvertType(filter.Type);
-                        break;
-                    case 3:
-                        jsonData.parametricEQ.filter3.enabled = true;
-                        jsonData.parametricEQ.filter3.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter3.gain = filter.Gain;
-                        jsonData.parametricEQ.filter3.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter3.type = ConvertType(filter.Type);
-                        break;
-                    case 4:
-                        jsonData.parametricEQ.filter4.enabled = true;
-                        jsonData.parametricEQ.filter4.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter4.gain = filter.Gain;
-                        jsonData.parametricEQ.filter4.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter4.type = ConvertType(filter.Type);
-                        break;
-                    case 5:
-                        jsonData.parametricEQ.filter5.enabled = true;
-                        jsonData.parametricEQ.filter5.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter5.gain = filter.Gain;
-                        jsonData.parametricEQ.filter5.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter5.type = ConvertType(filter.Type);
-                        break;
-                    case 6:
-                        jsonData.parametricEQ.filter6.enabled = true;
-                        jsonData.parametricEQ.filter6.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter6.gain = filter.Gain;
-                        jsonData.parametricEQ.filter6.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter6.type = ConvertType(filter.Type);
-                        break;
-                    case 7:
-                        jsonData.parametricEQ.filter7.enabled = true;
-                        jsonData.parametricEQ.filter7.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter7.gain = filter.Gain;
-                        jsonData.parametricEQ.filter7.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter7.type = ConvertType(filter.Type);
-                        break;
-                    case 8:
-                        jsonData.parametricEQ.filter8.enabled = true;
-                        jsonData.parametricEQ.filter8.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter8.gain = filter.Gain;
-                        jsonData.parametricEQ.filter8.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter8.type = ConvertType(filter.Type);
-                        break;
-                    case 9:
-                        jsonData.parametricEQ.filter9.enabled = true;
-                        jsonData.parametricEQ.filter9.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter9.gain = filter.Gain;
-                        jsonData.parametricEQ.filter9.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter9.type = ConvertType(filter.Type);
-                        break;
-                    case 10:
-                        jsonData.parametricEQ.filter10.enabled = true;
-                        jsonData.parametricEQ.filter10.qFactor = filter.QFactor;
-                        jsonData.parametricEQ.filter10.gain = filter.Gain;
-                        jsonData.parametricEQ.filter10.frequency = filter.Frequency;
-                        jsonData.parametricEQ.filter10.type = ConvertType(filter.Type);
-                        break;
+                    var currentFilter = currentFilterProperty.GetValue(jsonData.parametricEQ);
+
+                    if (currentFilter != null)
+                    {
+                        currentFilter.GetType().GetProperty("enabled")?.SetValue(currentFilter, true);
+                        currentFilter.GetType().GetProperty("qFactor")?.SetValue(currentFilter, filter.QFactor);
+                        currentFilter.GetType().GetProperty("gain")?.SetValue(currentFilter, filter.Gain);
+                        currentFilter.GetType().GetProperty("frequency")?.SetValue(currentFilter, filter.Frequency);
+                        currentFilter.GetType().GetProperty("type")?.SetValue(currentFilter, ConvertType(filter.Type));
+                    }
                 }
             }
 
@@ -285,65 +234,24 @@ namespace SonarEQ
 
             config.parametricEQ.enabled = true;
 
-            config.parametricEQ.filter1.enabled = true;
-            config.parametricEQ.filter1.qFactor = QFACTOR;
-            config.parametricEQ.filter1.frequency = 35;
-            config.parametricEQ.filter1.gain = 0;
-            config.parametricEQ.filter1.type = "peakingEQ";
+            for (int i = 1; i <= 10; i++)
+            {
+                var currentFilterProperty = config.parametricEQ.GetType().GetProperty($"filter{i}");
 
-            config.parametricEQ.filter2.enabled = true;
-            config.parametricEQ.filter2.qFactor = QFACTOR;
-            config.parametricEQ.filter2.frequency = 120;
-            config.parametricEQ.filter2.gain = 0;
-            config.parametricEQ.filter2.type = "peakingEQ";
+                if (currentFilterProperty != null)
+                {
+                    var currentFilter = currentFilterProperty.GetValue(config.parametricEQ);
 
-            config.parametricEQ.filter3.enabled = true;
-            config.parametricEQ.filter3.qFactor = QFACTOR;
-            config.parametricEQ.filter3.frequency = 1000;
-            config.parametricEQ.filter3.gain = 0;
-            config.parametricEQ.filter3.type = "peakingEQ";
-
-            config.parametricEQ.filter4.enabled = true;
-            config.parametricEQ.filter4.qFactor = QFACTOR;
-            config.parametricEQ.filter4.frequency = 6000;
-            config.parametricEQ.filter4.gain = 0;
-            config.parametricEQ.filter4.type = "peakingEQ";
-
-            config.parametricEQ.filter5.enabled = true;
-            config.parametricEQ.filter5.qFactor = QFACTOR;
-            config.parametricEQ.filter5.frequency = 18000;
-            config.parametricEQ.filter5.gain = 0;
-            config.parametricEQ.filter5.type = "peakingEQ";
-
-            config.parametricEQ.filter6.enabled = false;
-            config.parametricEQ.filter6.qFactor = QFACTOR;
-            config.parametricEQ.filter6.frequency = 1000;
-            config.parametricEQ.filter6.gain = 0;
-            config.parametricEQ.filter6.type = "peakingEQ";
-
-            config.parametricEQ.filter7.enabled = false;
-            config.parametricEQ.filter7.qFactor = QFACTOR;
-            config.parametricEQ.filter7.frequency = 2000;
-            config.parametricEQ.filter7.gain = 0;
-            config.parametricEQ.filter7.type = "peakingEQ";
-
-            config.parametricEQ.filter8.enabled = false;
-            config.parametricEQ.filter8.qFactor = QFACTOR;
-            config.parametricEQ.filter8.frequency = 4000;
-            config.parametricEQ.filter8.gain = 0;
-            config.parametricEQ.filter8.type = "peakingEQ";
-
-            config.parametricEQ.filter9.enabled = false;
-            config.parametricEQ.filter9.qFactor = QFACTOR;
-            config.parametricEQ.filter9.frequency = 8000;
-            config.parametricEQ.filter9.gain = 0;
-            config.parametricEQ.filter9.type = "peakingEQ";
-
-            config.parametricEQ.filter10.enabled = false;
-            config.parametricEQ.filter10.qFactor = QFACTOR;
-            config.parametricEQ.filter10.frequency = 16000;
-            config.parametricEQ.filter10.gain = 0;
-            config.parametricEQ.filter10.type = "peakingEQ";
+                    if (currentFilter != null)
+                    {
+                        currentFilter.GetType().GetProperty("enabled")?.SetValue(currentFilter, false);
+                        currentFilter.GetType().GetProperty("qFactor")?.SetValue(currentFilter, QFACTOR);
+                        currentFilter.GetType().GetProperty("gain")?.SetValue(currentFilter, 0);
+                        currentFilter.GetType().GetProperty("frequency")?.SetValue(currentFilter, GetStandardFrequency(i));
+                        currentFilter.GetType().GetProperty("type")?.SetValue(currentFilter, STANDARD_TYPE);
+                    }
+                }
+            }
 
             config.virtualSurroundChannels.frontLeft.position = 30;
             config.virtualSurroundChannels.frontLeft.gain = 0;
@@ -418,6 +326,35 @@ namespace SonarEQ
                 "aux" => VAD.Aux,
                 _ => VAD.Game,
             };
+        }
+
+        private static string GetStandardFrequency(Int32 filterIndex)
+        {
+            switch (filterIndex)
+            {
+                case 1:
+                    return "35";
+                case 2:
+                    return "120";
+                case 3:
+                    return "1000";
+                case 4:
+                    return "6000";
+                case 5:
+                    return "18000";
+                case 6:
+                    return "1000";
+                case 7:
+                    return "2000";
+                case 8:
+                    return "4000";
+                case 9:
+                    return "8000";
+                case 10:
+                    return "16000";
+                default:
+                    return "NaN";
+            }
         }
     }
 }
